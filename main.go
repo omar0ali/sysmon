@@ -9,4 +9,6 @@ import (
 func main() {
 	meminfo := sysmon.ReadMemInfo(sysmon.MB)
 	fmt.Printf("%+v", meminfo)
+	cpuinfo := sysmon.ReadCpuInfo()
+	fmt.Printf("%+v", cpuinfo)
 }
