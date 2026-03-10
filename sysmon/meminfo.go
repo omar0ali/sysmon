@@ -14,6 +14,9 @@ type MemInfo struct {
 	Free      uint64
 	Available uint64
 	Cached    uint64
+	Buffers   uint64
+	SwapTotal uint64
+	SwapFree  uint64
 }
 
 func ReadMemInfo(unit Unit) MemInfo {
@@ -37,5 +40,8 @@ func ReadMemInfo(unit Unit) MemInfo {
 		Free:      helper.ParseUint(data["MemFree"]) / uint64(unit),
 		Available: helper.ParseUint(data["MemAvailable"]) / uint64(unit),
 		Cached:    helper.ParseUint(data["Cached"]) / uint64(unit),
+		Buffers:   helper.ParseUint(data["Buffers"]) / uint64(unit),
+		SwapTotal: helper.ParseUint(data["SwapTotal"]) / uint64(unit),
+		SwapFree:  helper.ParseUint(data["SwapFree"]) / uint64(unit),
 	}
 }

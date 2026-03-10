@@ -8,12 +8,15 @@ import (
 )
 
 func main() {
+
+	// MemInfo And CpuInfo
+
 	meminfo := sysmon.ReadMemInfo(sysmon.MB)
-	fmt.Printf("%+v\n", meminfo)
+	fmt.Printf("MEMINFO: %+v\n", meminfo)
 	cpuinfo := sysmon.ReadCpuInfo()
-	fmt.Printf("%+v\n", cpuinfo)
-	cpustat := sysmon.ReadCpuStat()
-	fmt.Printf("%+v\n", cpustat)
+	fmt.Printf("CPUINFO: %+v\n", cpuinfo)
+
+	// CpuStat
 
 	prev := sysmon.ReadCpuStat()
 	time.Sleep(1 * time.Second)
