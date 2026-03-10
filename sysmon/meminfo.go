@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"strings"
 
-	"github.com/omar0ali/activity-monitor/helper"
+	"github.com/omar0ali/sysmon/helper"
 )
 
 const meminfo_path = "/proc/meminfo"

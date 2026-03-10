@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/omar0ali/activity-monitor/helper"
+	"github.com/omar0ali/sysmon/helper"
 )
 
 const cpuinfo_path = "/proc/cpuinfo"

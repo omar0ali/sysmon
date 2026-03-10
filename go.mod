@@ -1,4 +1,4 @@
-module github.com/omar0ali/activity-monitor
+module github.com/omar0ali/sysmon
 
 go 1.25.3
 
