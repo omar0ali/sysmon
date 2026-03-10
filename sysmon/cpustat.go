@@ -41,3 +41,23 @@ func ReadCpuStat() []CPUStats {
 	})
 	return cpustat
 }
+
+func DeltaCPUStats(prev, curr []CPUStats) []CPUStats {
+	n := min(len(curr),
+		// safety: in case slices are unequal
+		len(prev))
+
+	deltas := make([]CPUStats, n)
+	for i := 0; i < n; i++ {
+		deltas[i] = CPUStats{
+			User:    curr[i].User - prev[i].User,
+			Nice:    curr[i].Nice - prev[i].Nice,
+			System:  curr[i].System - prev[i].System,
+			Idle:    curr[i].Idle - prev[i].Idle,
+			Iowait:  curr[i].Iowait - prev[i].Iowait,
+			Irq:     curr[i].Irq - prev[i].Irq,
+			SoftIrq: curr[i].SoftIrq - prev[i].SoftIrq,
+		}
+	}
+	return deltas
+}
