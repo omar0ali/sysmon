@@ -32,13 +32,6 @@ import "github.com/omar0ali/sysmon"
 ```go
 package main
 
-import (
-	"fmt"
-	"time"
-
-	"github.com/omar0ali/sysmon/sysmon"
-)
-
 func main() {
 
 	// MemInfo And CpuInfo
