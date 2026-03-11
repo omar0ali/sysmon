@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"strings"
 
-	"github.com/omar0ali/sysmon/helper"
+	"github.com/omar0ali/sysmon/sysmon/helper"
 )
 
 const cpustat_path = "/proc/stat"

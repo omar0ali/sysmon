@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/omar0ali/sysmon/helper"
+	"github.com/omar0ali/sysmon/sysmon/helper"
 )
 
 const proc_path = "/proc/"
