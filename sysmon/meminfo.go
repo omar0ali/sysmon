@@ -19,20 +19,23 @@ type MemInfo struct {
 	SwapFree  uint64
 }
 
+func ParseMemInfoLine(line string, data map[string]string) {
+	parts := strings.SplitN(line, ":", 2)
+	if len(parts) != 2 {
+		return
+	}
+	key := strings.TrimSpace(parts[0])
+	value := strings.TrimSpace(parts[1])
+	data[key] = value
+}
+
 func ReadMemInfo(unit Unit) MemInfo {
 	data := map[string]string{}
 	helper.OpenScanner(meminfo_path, func(scanner *bufio.Scanner) {
 		scanner.Split(bufio.ScanLines) //set lines (default) can be ignored
 		for scanner.Scan() {
-			parts := strings.SplitN(scanner.Text(), ":", 2)
-			if len(parts) != 2 {
-				return
-			}
-			key := strings.TrimSpace(parts[0])
-			value := strings.TrimSpace(parts[1])
-			data[key] = value
+			ParseMemInfoLine(scanner.Text(), data)
 		}
-
 	})
 
 	return MemInfo{

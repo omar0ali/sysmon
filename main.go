@@ -19,8 +19,15 @@ func main() {
 	// CpuStat
 
 	prev := sysmon.ReadCpuStat()
+	for i, stat := range prev {
+		fmt.Printf("CPUSTATS_PREV %d: %+v\n", i, *stat)
+	}
+
 	time.Sleep(time.Second)
 	curr := sysmon.ReadCpuStat()
+	for i, stat := range curr {
+		fmt.Printf("CPUSTATS_CURR %d: %+v\n", i, *stat)
+	}
 
 	delta := sysmon.DeltaCPUStats(prev, curr)
 
@@ -50,6 +57,7 @@ func main() {
 
 	prevCPU := sysmon.ReadCpuStat()
 	prevProcCPU := map[int]uint64{}
+
 	for pid, p := range procs {
 		prevProcCPU[pid] = p.Stat.UTime + p.Stat.STime
 	}
@@ -61,6 +69,7 @@ func main() {
 	delta = sysmon.DeltaCPUStats(prevCPU, currCPU)
 
 	totalDelta := uint64(0)
+
 	for _, d := range delta {
 		totalDelta += d.User + d.Nice + d.System + d.Idle +
 			d.Iowait + d.Irq + d.SoftIrq
