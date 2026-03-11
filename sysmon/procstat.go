@@ -48,8 +48,7 @@ type Process struct {
 	Cmdline Cmdline
 }
 
-func ParseStatLine(line string) *Stat {
-	stat := &Stat{}
+func ParseStatLine(line string, stat *Stat) {
 	start := strings.Index(line, "(")
 	end := strings.LastIndex(line, ")")
 	stat.PID, _ = strconv.Atoi(strings.TrimSpace(line[:start]))
@@ -65,7 +64,41 @@ func ParseStatLine(line string) *Stat {
 	stat.StartTime, _ = strconv.ParseUint(fields[19], 10, 64)
 	stat.VSize, _ = strconv.ParseUint(fields[20], 10, 64)
 	stat.RSS, _ = strconv.ParseInt(fields[21], 10, 64)
-	return stat
+}
+
+func ParseStatusLine(line string, status *Status) {
+	parts := strings.SplitN(line, ":", 2)
+	if len(parts) != 2 {
+		return
+	}
+
+	key := parts[0]
+	value := strings.TrimSpace(parts[1])
+
+	switch key {
+
+	case "Name":
+		status.Name = value
+
+	case "Uid":
+		fields := strings.Fields(value)
+		uid, _ := strconv.Atoi(fields[0])
+		status.UID = uid
+
+	case "VmSize":
+		fields := strings.Fields(value)
+		v, _ := strconv.ParseUint(fields[0], 10, 64)
+		status.VmSize = v
+
+	case "VmRSS":
+		fields := strings.Fields(value)
+		v, _ := strconv.ParseUint(fields[0], 10, 64)
+		status.VmRSS = v
+
+	case "Threads":
+		v, _ := strconv.Atoi(value)
+		status.Threads = v
+	}
 }
 
 func GetPids() []int {
@@ -95,7 +128,7 @@ func ParseStat(pid int) *Stat {
 	helper.OpenScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
-			ParseStatLine(line)
+			ParseStatLine(line, stat)
 		}
 
 	})
@@ -128,39 +161,7 @@ func ParseStatus(pid int) *Status {
 	helper.OpenScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := scanner.Text()
-
-			parts := strings.SplitN(line, ":", 2)
-			if len(parts) != 2 {
-				continue
-			}
-
-			key := parts[0]
-			value := strings.TrimSpace(parts[1])
-
-			switch key {
-
-			case "Name":
-				status.Name = value
-
-			case "Uid":
-				fields := strings.Fields(value)
-				uid, _ := strconv.Atoi(fields[0])
-				status.UID = uid
-
-			case "VmSize":
-				fields := strings.Fields(value)
-				v, _ := strconv.ParseUint(fields[0], 10, 64)
-				status.VmSize = v
-
-			case "VmRSS":
-				fields := strings.Fields(value)
-				v, _ := strconv.ParseUint(fields[0], 10, 64)
-				status.VmRSS = v
-
-			case "Threads":
-				v, _ := strconv.Atoi(value)
-				status.Threads = v
-			}
+			ParseStatusLine(line, status)
 		}
 	})
 
