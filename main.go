@@ -30,4 +30,19 @@ func main() {
 		usage := float64(total-idle) / float64(total) * 100
 		fmt.Printf("CPU%d usage: %.1f%%\n", i, usage)
 	}
+
+	// display processes
+
+	pids := sysmon.GetPids()
+	fmt.Printf("Pids: %+v\n", pids)
+
+	procs := []*sysmon.Process{}
+	for i := range pids {
+		procs = append(procs, sysmon.NewProcess(pids[i]))
+	}
+
+	for i := range procs {
+		fmt.Printf("PROC: %+v\n", procs[i])
+	}
+
 }
