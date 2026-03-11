@@ -48,6 +48,26 @@ type Process struct {
 	Cmdline Cmdline
 }
 
+func ParseStatLine(line string) *Stat {
+	stat := &Stat{}
+	start := strings.Index(line, "(")
+	end := strings.LastIndex(line, ")")
+	stat.PID, _ = strconv.Atoi(strings.TrimSpace(line[:start]))
+	stat.Comm = line[start+1 : end]
+	fields := strings.Fields(line[end+2:])
+	stat.State = fields[0]
+	stat.PPID, _ = strconv.Atoi(fields[1])
+	stat.UTime, _ = strconv.ParseUint(fields[11], 10, 64)
+	stat.STime, _ = strconv.ParseUint(fields[12], 10, 64)
+	stat.Priority, _ = strconv.Atoi(fields[15])
+	stat.Nice, _ = strconv.Atoi(fields[16])
+	stat.NumThreads, _ = strconv.Atoi(fields[17])
+	stat.StartTime, _ = strconv.ParseUint(fields[19], 10, 64)
+	stat.VSize, _ = strconv.ParseUint(fields[20], 10, 64)
+	stat.RSS, _ = strconv.ParseInt(fields[21], 10, 64)
+	return stat
+}
+
 func GetPids() []int {
 	var pids []int
 	dir, err := os.ReadDir(proc_path)
@@ -75,24 +95,7 @@ func ParseStat(pid int) *Stat {
 	helper.OpenScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
-			start := strings.Index(line, "(")
-			end := strings.LastIndex(line, ")")
-
-			stat.PID, _ = strconv.Atoi(strings.TrimSpace(line[:start]))
-			stat.Comm = line[start+1 : end]
-
-			fields := strings.Fields(line[end+2:])
-
-			stat.State = fields[0]
-			stat.PPID, _ = strconv.Atoi(fields[1])
-			stat.UTime, _ = strconv.ParseUint(fields[11], 10, 64)
-			stat.STime, _ = strconv.ParseUint(fields[12], 10, 64)
-			stat.Priority, _ = strconv.Atoi(fields[15])
-			stat.Nice, _ = strconv.Atoi(fields[16])
-			stat.NumThreads, _ = strconv.Atoi(fields[17])
-			stat.StartTime, _ = strconv.ParseUint(fields[19], 10, 64)
-			stat.VSize, _ = strconv.ParseUint(fields[20], 10, 64)
-			stat.RSS, _ = strconv.ParseInt(fields[21], 10, 64)
+			ParseStatLine(line)
 		}
 
 	})
@@ -174,5 +177,34 @@ func NewProcess(pid int) *Process {
 		Stat:    *stat,
 		Status:  *status,
 		Cmdline: *cmdline,
+	}
+}
+
+func (p *Process) updateStat() {
+	stat := ParseStat(p.PID) // reads /proc/[pid]/stat
+	p.Stat.UTime = stat.UTime
+	p.Stat.STime = stat.STime
+	p.Stat.StartTime = stat.StartTime
+}
+
+// used to get an update of the UTime, STime, StartTime after sleep by i.e one second
+// must read all processes first
+
+func RefreshProcesses(procs map[int]*Process) {
+	pids := GetPids()
+	seen := map[int]bool{}
+	for _, pid := range pids {
+		seen[pid] = true
+		if p, ok := procs[pid]; ok {
+			p.updateStat()
+		} else {
+			procs[pid] = NewProcess(pid)
+		}
+	}
+
+	for pid := range procs {
+		if !seen[pid] {
+			delete(procs, pid)
+		}
 	}
 }

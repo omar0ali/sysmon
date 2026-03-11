@@ -19,7 +19,7 @@ func main() {
 	// CpuStat
 
 	prev := sysmon.ReadCpuStat()
-	time.Sleep(1 * time.Second)
+	time.Sleep(time.Second)
 	curr := sysmon.ReadCpuStat()
 
 	delta := sysmon.DeltaCPUStats(prev, curr)
@@ -36,13 +36,50 @@ func main() {
 	pids := sysmon.GetPids()
 	fmt.Printf("Pids: %+v\n", pids)
 
-	procs := []*sysmon.Process{}
+	procs := map[int]*sysmon.Process{}
+
 	for i := range pids {
-		procs = append(procs, sysmon.NewProcess(pids[i]))
+		procs[pids[i]] = sysmon.NewProcess(pids[i])
 	}
 
 	for i := range procs {
 		fmt.Printf("PROC: %+v\n", procs[i])
 	}
 
+	// refresh processes to get processes usage
+
+	prevCPU := sysmon.ReadCpuStat()
+	prevProcCPU := map[int]uint64{}
+	for pid, p := range procs {
+		prevProcCPU[pid] = p.Stat.UTime + p.Stat.STime
+	}
+
+	time.Sleep(time.Second)
+	sysmon.RefreshProcesses(procs)
+
+	currCPU := sysmon.ReadCpuStat()
+	delta = sysmon.DeltaCPUStats(prevCPU, currCPU)
+
+	totalDelta := uint64(0)
+	for _, d := range delta {
+		totalDelta += d.User + d.Nice + d.System + d.Idle +
+			d.Iowait + d.Irq + d.SoftIrq
+	}
+
+	for pid, p := range procs {
+
+		prev, ok := prevProcCPU[pid]
+		if !ok {
+			continue
+		}
+
+		curr := p.Stat.UTime + p.Stat.STime
+		procDelta := curr - prev
+
+		cpuPercent := float64(procDelta) / float64(totalDelta) * 100
+
+		name := p.Stat.Comm
+
+		fmt.Printf("Name: %s PID: %d CPU: %.2f%%\n", name, pid, cpuPercent)
+	}
 }
