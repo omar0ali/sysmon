@@ -46,13 +46,13 @@ func ParseCpuInfoLine(line string, cpuinfo *CpuInfo) {
 	}
 }
 
-func ReadCpuInfo() *CpuInfo {
+func ReadCpuInfo() (*CpuInfo, error) {
 	cpuinfo := &CpuInfo{}
-	helper.OpenScanner(cpuinfo_path, func(scanner *bufio.Scanner) {
+	err := helper.OpenScanner(cpuinfo_path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
 			ParseCpuInfoLine(line, cpuinfo)
 		}
 	})
-	return cpuinfo
+	return cpuinfo, err
 }

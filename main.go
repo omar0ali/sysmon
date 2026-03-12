@@ -13,7 +13,10 @@ func main() {
 
 	meminfo := sysmon.ReadMemInfo(sysmon.MB)
 	fmt.Printf("MEMINFO: %+v\n", meminfo)
-	cpuinfo := sysmon.ReadCpuInfo()
+	cpuinfo, err := sysmon.ReadCpuInfo()
+	if err != nil {
+		println(err)
+	}
 	fmt.Printf("CPUINFO: %+v\n", cpuinfo)
 
 	// CpuStat

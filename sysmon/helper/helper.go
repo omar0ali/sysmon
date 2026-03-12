@@ -22,14 +22,18 @@ func Open(path string) (*os.File, *bufio.Scanner) {
 }
 
 // this open will close the file automatically
-func OpenScanner(path string, f func(scanner *bufio.Scanner)) {
-	file := Must(os.Open(path))
+func OpenScanner(path string, f func(scanner *bufio.Scanner)) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	f(scanner)
 	if err := scanner.Err(); err != nil {
 		panic(err)
 	}
+	return nil
 }
 
 func ParseUint(val string) uint64 {
