@@ -37,7 +37,7 @@ func ParseCpuStatLine(line string, cpustat *[]*CPUStats) bool {
 
 func ReadCpuStat() ([]*CPUStats, error) {
 	var cpustat []*CPUStats
-	err := helper.OpenScanner(cpustat_path, func(scanner *bufio.Scanner) {
+	err := helper.OpenWithScanner(cpustat_path, func(scanner *bufio.Scanner) {
 		scanner.Split(bufio.ScanLines)
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())

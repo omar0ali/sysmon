@@ -14,21 +14,23 @@ func Must[T any](i T, e error) T {
 	return i
 }
 
-// this open needs to close the file later
-func Open(path string) (*os.File, *bufio.Scanner) {
-	file := Must(os.Open(path))
+func open(path string) (*os.File, *bufio.Scanner, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	scanner := bufio.NewScanner(file)
-	return file, scanner
+	return file, scanner, nil
 }
 
 // this open will close the file automatically
-func OpenScanner(path string, f func(scanner *bufio.Scanner)) error {
-	file, err := os.Open(path)
+func OpenWithScanner(path string, f func(scanner *bufio.Scanner)) error {
+	file, scanner, err := open(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	scanner := bufio.NewScanner(file)
 	f(scanner)
 	if err := scanner.Err(); err != nil {
 		return err

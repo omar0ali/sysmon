@@ -125,7 +125,7 @@ func ParseStat(pid int) *Stat {
 	stat := &Stat{}
 	const file = "stat"
 	path := fmt.Sprintf("%s/%d/%s", proc_path, pid, file)
-	helper.OpenScanner(path, func(scanner *bufio.Scanner) {
+	helper.OpenWithScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
 			ParseStatLine(line, stat)
@@ -158,7 +158,7 @@ func ParseStatus(pid int) *Status {
 	const file = "status"
 	path := fmt.Sprintf("%s/%d/%s", proc_path, pid, file)
 	status := &Status{}
-	helper.OpenScanner(path, func(scanner *bufio.Scanner) {
+	helper.OpenWithScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := scanner.Text()
 			ParseStatusLine(line, status)

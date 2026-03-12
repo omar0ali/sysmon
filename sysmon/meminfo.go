@@ -31,7 +31,7 @@ func ParseMemInfoLine(line string, data map[string]string) {
 
 func ReadMemInfo(unit Unit) MemInfo {
 	data := map[string]string{}
-	helper.OpenScanner(meminfo_path, func(scanner *bufio.Scanner) {
+	helper.OpenWithScanner(meminfo_path, func(scanner *bufio.Scanner) {
 		scanner.Split(bufio.ScanLines) //set lines (default) can be ignored
 		for scanner.Scan() {
 			ParseMemInfoLine(scanner.Text(), data)
