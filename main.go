@@ -15,19 +15,26 @@ func main() {
 	fmt.Printf("MEMINFO: %+v\n", meminfo)
 	cpuinfo, err := sysmon.ReadCpuInfo()
 	if err != nil {
-		println(err)
+		panic(err)
 	}
 	fmt.Printf("CPUINFO: %+v\n", cpuinfo)
 
 	// CpuStat
 
-	prev := sysmon.ReadCpuStat()
+	prev, err := sysmon.ReadCpuStat()
+	if err != nil {
+		panic(err)
+	}
+
 	for i, stat := range prev {
 		fmt.Printf("CPUSTATS_PREV %d: %+v\n", i, *stat)
 	}
 
 	time.Sleep(time.Second)
-	curr := sysmon.ReadCpuStat()
+	curr, err := sysmon.ReadCpuStat()
+	if err != nil {
+		panic(err)
+	}
 	for i, stat := range curr {
 		fmt.Printf("CPUSTATS_CURR %d: %+v\n", i, *stat)
 	}
@@ -58,7 +65,10 @@ func main() {
 
 	// refresh processes to get processes usage
 
-	prevCPU := sysmon.ReadCpuStat()
+	prevCPU, err := sysmon.ReadCpuStat()
+	if err != nil {
+		panic(err)
+	}
 	prevProcCPU := map[int]uint64{}
 
 	for pid, p := range procs {
@@ -68,7 +78,10 @@ func main() {
 	time.Sleep(time.Second)
 	sysmon.RefreshProcesses(procs)
 
-	currCPU := sysmon.ReadCpuStat()
+	currCPU, err := sysmon.ReadCpuStat()
+	if err != nil {
+		panic(err)
+	}
 	delta = sysmon.DeltaCPUStats(prevCPU, currCPU)
 
 	totalDelta := uint64(0)

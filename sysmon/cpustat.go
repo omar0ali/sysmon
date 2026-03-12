@@ -35,9 +35,9 @@ func ParseCpuStatLine(line string, cpustat *[]*CPUStats) bool {
 	return true
 }
 
-func ReadCpuStat() []*CPUStats {
+func ReadCpuStat() ([]*CPUStats, error) {
 	var cpustat []*CPUStats
-	helper.OpenScanner(cpustat_path, func(scanner *bufio.Scanner) {
+	err := helper.OpenScanner(cpustat_path, func(scanner *bufio.Scanner) {
 		scanner.Split(bufio.ScanLines)
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
@@ -46,7 +46,10 @@ func ReadCpuStat() []*CPUStats {
 			}
 		}
 	})
-	return cpustat
+	if err != nil {
+		return nil, err
+	}
+	return cpustat, nil
 }
 
 func DeltaCPUStats(prev, curr []*CPUStats) []*CPUStats {

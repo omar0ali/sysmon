@@ -31,7 +31,7 @@ func OpenScanner(path string, f func(scanner *bufio.Scanner)) error {
 	scanner := bufio.NewScanner(file)
 	f(scanner)
 	if err := scanner.Err(); err != nil {
-		panic(err)
+		return err
 	}
 	return nil
 }
