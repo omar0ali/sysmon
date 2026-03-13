@@ -7,7 +7,7 @@ import (
 	"github.com/omar0ali/sysmon/sysmon/helper"
 )
 
-const cpustat_path = "/proc/stat"
+const cpustat_path = helper.PROC_DIR + "/stat"
 
 type CPUStats struct {
 	User, Nice, System, Idle, Iowait, Irq, SoftIrq uint64

@@ -8,7 +8,7 @@ import (
 	"github.com/omar0ali/sysmon/sysmon/helper"
 )
 
-const cpuinfo_path = "/proc/cpuinfo"
+const cpuinfo_path = helper.PROC_DIR + "/cpuinfo"
 
 type CpuInfo struct {
 	LogicalCPUs   int

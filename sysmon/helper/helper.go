@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const PROC_DIR = "/proc"
+
 func Must[T any](i T, e error) T {
 	if e != nil {
 		panic(e)

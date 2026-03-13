@@ -11,7 +11,10 @@ func main() {
 
 	// MemInfo And CpuInfo
 
-	meminfo := sysmon.ReadMemInfo(sysmon.MB)
+	meminfo, err := sysmon.ReadMemInfo(sysmon.MB)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Printf("MEMINFO: %+v\n", meminfo)
 	cpuinfo, err := sysmon.ReadCpuInfo()
 	if err != nil {
@@ -50,13 +53,19 @@ func main() {
 
 	// display processes
 
-	pids := sysmon.GetPids()
+	pids, err := sysmon.GetPids()
+	if err != nil {
+		panic(err)
+	}
 	fmt.Printf("Pids: %+v\n", pids)
 
 	procs := map[int]*sysmon.Process{}
 
 	for i := range pids {
-		procs[pids[i]] = sysmon.NewProcess(pids[i])
+		procs[pids[i]], err = sysmon.NewProcess(pids[i])
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	for i := range procs {
