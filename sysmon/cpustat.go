@@ -14,24 +14,24 @@ type CPUStats struct {
 }
 
 func ParseCpuStatLine(line string, cpustat *[]*CPUStats) bool {
-	if strings.HasPrefix(line, "cpu") {
-		parts := strings.Fields(line)
-		if len(parts) < 8 { // void index out of range panic
-			return true
-		}
-		*cpustat = append(*cpustat, &CPUStats{
-			User:    helper.ParseUint(parts[1]),
-			Nice:    helper.ParseUint(parts[2]),
-			System:  helper.ParseUint(parts[3]),
-			Idle:    helper.ParseUint(parts[4]),
-			Iowait:  helper.ParseUint(parts[5]),
-			Irq:     helper.ParseUint(parts[6]),
-			SoftIrq: helper.ParseUint(parts[7]),
-		})
-	}
 	if !strings.HasPrefix(line, "cpu") {
 		return false
 	}
+
+	parts := strings.Fields(line)
+	if len(parts) < 8 {
+		return true
+	}
+
+	*cpustat = append(*cpustat, &CPUStats{
+		User:    helper.ParseUint(parts[1]),
+		Nice:    helper.ParseUint(parts[2]),
+		System:  helper.ParseUint(parts[3]),
+		Idle:    helper.ParseUint(parts[4]),
+		Iowait:  helper.ParseUint(parts[5]),
+		Irq:     helper.ParseUint(parts[6]),
+		SoftIrq: helper.ParseUint(parts[7]),
+	})
 	return true
 }
 

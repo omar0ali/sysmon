@@ -2,7 +2,9 @@ package helper
 
 import (
 	"bufio"
+	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -17,6 +19,14 @@ func Must[T any](i T, e error) T {
 }
 
 func open(path string) (*os.File, *bufio.Scanner, error) {
+	if runtime.GOOS != "linux" {
+		return nil, nil, fmt.Errorf("this tool only works on Linux")
+	}
+
+	if _, err := os.Stat("/proc"); os.IsNotExist(err) {
+		return nil, nil, fmt.Errorf("/proc is not available (procfs not mounted)")
+	}
+
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, nil, err
