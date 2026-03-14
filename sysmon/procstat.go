@@ -11,8 +11,6 @@ import (
 	"github.com/omar0ali/sysmon/sysmon/helper"
 )
 
-const proc_path = "/proc/"
-
 type Stat struct {
 	PID        int    // field 1
 	Comm       string // field 2
@@ -49,21 +47,67 @@ type Process struct {
 }
 
 func ParseStatLine(line string, stat *Stat) {
+	if line == "" {
+		return
+	}
 	start := strings.Index(line, "(")
 	end := strings.LastIndex(line, ")")
-	stat.PID, _ = strconv.Atoi(strings.TrimSpace(line[:start]))
+	if start == -1 || end == -1 || end <= start {
+		return
+	}
+
+	var err error
+
+	stat.PID, err = strconv.Atoi(strings.TrimSpace(line[:start]))
+	if err != nil {
+		return
+	}
 	stat.Comm = line[start+1 : end]
-	fields := strings.Fields(line[end+2:])
+
+	var fields []string
+	if end+2 < len(line) {
+		fields = strings.Fields(line[end+2:])
+	} else {
+		return
+	}
+
 	stat.State = fields[0]
-	stat.PPID, _ = strconv.Atoi(fields[1])
-	stat.UTime, _ = strconv.ParseUint(fields[11], 10, 64)
-	stat.STime, _ = strconv.ParseUint(fields[12], 10, 64)
-	stat.Priority, _ = strconv.Atoi(fields[15])
-	stat.Nice, _ = strconv.Atoi(fields[16])
-	stat.NumThreads, _ = strconv.Atoi(fields[17])
-	stat.StartTime, _ = strconv.ParseUint(fields[19], 10, 64)
-	stat.VSize, _ = strconv.ParseUint(fields[20], 10, 64)
-	stat.RSS, _ = strconv.ParseInt(fields[21], 10, 64)
+	stat.PPID, err = strconv.Atoi(fields[1])
+	if err != nil {
+		return
+	}
+	stat.UTime, err = strconv.ParseUint(fields[11], 10, 64)
+	if err != nil {
+		return
+	}
+	stat.STime, err = strconv.ParseUint(fields[12], 10, 64)
+	if err != nil {
+		return
+	}
+	stat.Priority, err = strconv.Atoi(fields[15])
+	if err != nil {
+		return
+	}
+	stat.Nice, err = strconv.Atoi(fields[16])
+	if err != nil {
+		return
+	}
+	stat.NumThreads, err = strconv.Atoi(fields[17])
+	if err != nil {
+		return
+	}
+	stat.StartTime, err = strconv.ParseUint(fields[19], 10, 64)
+	if err != nil {
+		return
+	}
+	stat.VSize, err = strconv.ParseUint(fields[20], 10, 64)
+	if err != nil {
+		return
+	}
+	stat.RSS, err = strconv.ParseInt(fields[21], 10, 64)
+	if err != nil {
+		return
+	}
 }
 
 func ParseStatusLine(line string, status *Status) {
@@ -101,11 +145,11 @@ func ParseStatusLine(line string, status *Status) {
 	}
 }
 
-func GetPids() []int {
+func GetPids() ([]int, error) {
 	var pids []int
-	dir, err := os.ReadDir(proc_path)
+	dir, err := os.ReadDir(helper.PROC_DIR)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	for i := range dir {
@@ -118,26 +162,30 @@ func GetPids() []int {
 			pids = append(pids, v)
 		}
 	}
-	return pids
+	return pids, nil
 }
 
-func ParseStat(pid int) *Stat {
+func ParseStat(pid int) (*Stat, error) {
 	stat := &Stat{}
 	const file = "stat"
-	path := fmt.Sprintf("%s/%d/%s", proc_path, pid, file)
-	helper.OpenScanner(path, func(scanner *bufio.Scanner) {
+	path := fmt.Sprintf("%s/%d/%s", helper.PROC_DIR, pid, file)
+	err := helper.OpenWithScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
 			ParseStatLine(line, stat)
 		}
 
 	})
-	return stat
+
+	if err != nil {
+		return nil, err
+	}
+	return stat, nil
 }
 
 func ParseCmdline(pid int) *Cmdline {
 	const file = "cmdline"
-	path := fmt.Sprintf("%s/%d/%s", proc_path, pid, file)
+	path := fmt.Sprintf("%s/%d/%s", helper.PROC_DIR, pid, file)
 
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -156,9 +204,9 @@ func ParseCmdline(pid int) *Cmdline {
 
 func ParseStatus(pid int) *Status {
 	const file = "status"
-	path := fmt.Sprintf("%s/%d/%s", proc_path, pid, file)
+	path := fmt.Sprintf("%s/%d/%s", helper.PROC_DIR, pid, file)
 	status := &Status{}
-	helper.OpenScanner(path, func(scanner *bufio.Scanner) {
+	helper.OpenWithScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := scanner.Text()
 			ParseStatusLine(line, status)
@@ -168,8 +216,11 @@ func ParseStatus(pid int) *Status {
 	return status
 }
 
-func NewProcess(pid int) *Process {
-	stat := ParseStat(pid)
+func NewProcess(pid int) (*Process, error) {
+	stat, err := ParseStat(pid)
+	if err != nil {
+		return nil, err
+	}
 	status := ParseStatus(pid)
 	cmdline := ParseCmdline(pid)
 
@@ -178,28 +229,38 @@ func NewProcess(pid int) *Process {
 		Stat:    *stat,
 		Status:  *status,
 		Cmdline: *cmdline,
-	}
+	}, nil
 }
 
-func (p *Process) updateStat() {
-	stat := ParseStat(p.PID) // reads /proc/[pid]/stat
+func (p *Process) updateStat() error {
+	stat, err := ParseStat(p.PID) // reads /proc/[pid]/stat
+	if err != nil {
+		return err
+	}
 	p.Stat.UTime = stat.UTime
 	p.Stat.STime = stat.STime
 	p.Stat.StartTime = stat.StartTime
+	return nil
 }
 
 // used to get an update of the UTime, STime, StartTime after sleep by i.e one second
 // must read all processes first
 
-func RefreshProcesses(procs map[int]*Process) {
-	pids := GetPids()
+func RefreshProcesses(procs map[int]*Process) error {
+	pids, err := GetPids()
+	if err != nil {
+		return err
+	}
 	seen := map[int]bool{}
 	for _, pid := range pids {
 		seen[pid] = true
 		if p, ok := procs[pid]; ok {
 			p.updateStat()
 		} else {
-			procs[pid] = NewProcess(pid)
+			procs[pid], err = NewProcess(pid)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -208,4 +269,5 @@ func RefreshProcesses(procs map[int]*Process) {
 			delete(procs, pid)
 		}
 	}
+	return nil
 }

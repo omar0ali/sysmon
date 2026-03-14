@@ -7,37 +7,37 @@ import (
 	"github.com/omar0ali/sysmon/sysmon/helper"
 )
 
-const cpustat_path = "/proc/stat"
+const cpustat_path = helper.PROC_DIR + "/stat"
 
 type CPUStats struct {
 	User, Nice, System, Idle, Iowait, Irq, SoftIrq uint64
 }
 
 func ParseCpuStatLine(line string, cpustat *[]*CPUStats) bool {
-	if strings.HasPrefix(line, "cpu") {
-		parts := strings.Fields(line)
-		if len(parts) < 8 { // void index out of range panic
-			return true
-		}
-		*cpustat = append(*cpustat, &CPUStats{
-			User:    helper.ParseUint(parts[1]),
-			Nice:    helper.ParseUint(parts[2]),
-			System:  helper.ParseUint(parts[3]),
-			Idle:    helper.ParseUint(parts[4]),
-			Iowait:  helper.ParseUint(parts[5]),
-			Irq:     helper.ParseUint(parts[6]),
-			SoftIrq: helper.ParseUint(parts[7]),
-		})
-	}
 	if !strings.HasPrefix(line, "cpu") {
 		return false
 	}
+
+	parts := strings.Fields(line)
+	if len(parts) < 8 {
+		return true
+	}
+
+	*cpustat = append(*cpustat, &CPUStats{
+		User:    helper.ParseUint(parts[1]),
+		Nice:    helper.ParseUint(parts[2]),
+		System:  helper.ParseUint(parts[3]),
+		Idle:    helper.ParseUint(parts[4]),
+		Iowait:  helper.ParseUint(parts[5]),
+		Irq:     helper.ParseUint(parts[6]),
+		SoftIrq: helper.ParseUint(parts[7]),
+	})
 	return true
 }
 
-func ReadCpuStat() []*CPUStats {
+func ReadCpuStat() ([]*CPUStats, error) {
 	var cpustat []*CPUStats
-	helper.OpenScanner(cpustat_path, func(scanner *bufio.Scanner) {
+	err := helper.OpenWithScanner(cpustat_path, func(scanner *bufio.Scanner) {
 		scanner.Split(bufio.ScanLines)
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
@@ -46,7 +46,10 @@ func ReadCpuStat() []*CPUStats {
 			}
 		}
 	})
-	return cpustat
+	if err != nil {
+		return nil, err
+	}
+	return cpustat, nil
 }
 
 func DeltaCPUStats(prev, curr []*CPUStats) []*CPUStats {
