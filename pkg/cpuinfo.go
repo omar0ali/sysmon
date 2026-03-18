@@ -1,14 +1,13 @@
-package sysmon
+package pkg
 
 import (
 	"bufio"
+	"github.com/omar0ali/sysmon/internal"
 	"strconv"
 	"strings"
-
-	"github.com/omar0ali/sysmon/sysmon/helper"
 )
 
-const cpuinfoPath = helper.PROC_DIR + "/cpuinfo"
+const cpuinfoPath = internal.PROC_DIR + "/cpuinfo"
 
 type CpuInfo struct {
 	LogicalCPUs   int
@@ -51,7 +50,7 @@ func ParseCpuInfoLine(line string, cpuinfo *CpuInfo) {
 
 func ReadCpuInfo() (*CpuInfo, error) {
 	cpuinfo := &CpuInfo{}
-	err := helper.OpenWithScanner(cpuinfoPath, func(scanner *bufio.Scanner) {
+	err := internal.OpenWithScanner(cpuinfoPath, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
 			ParseCpuInfoLine(line, cpuinfo)

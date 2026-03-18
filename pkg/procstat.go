@@ -1,4 +1,4 @@
-package sysmon
+package pkg
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/omar0ali/sysmon/sysmon/helper"
+	"github.com/omar0ali/sysmon/internal"
 )
 
 type Stat struct {
@@ -147,7 +147,7 @@ func ParseStatusLine(line string, status *Status) {
 
 func GetPids() ([]int, error) {
 	var pids []int
-	dir, err := os.ReadDir(helper.PROC_DIR)
+	dir, err := os.ReadDir(internal.PROC_DIR)
 	if err != nil {
 		return nil, err
 	}
@@ -168,8 +168,8 @@ func GetPids() ([]int, error) {
 func ParseStat(pid int) (*Stat, error) {
 	stat := &Stat{}
 	const file = "stat"
-	path := fmt.Sprintf("%s/%d/%s", helper.PROC_DIR, pid, file)
-	err := helper.OpenWithScanner(path, func(scanner *bufio.Scanner) {
+	path := fmt.Sprintf("%s/%d/%s", internal.PROC_DIR, pid, file)
+	err := internal.OpenWithScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
 			ParseStatLine(line, stat)
@@ -185,7 +185,7 @@ func ParseStat(pid int) (*Stat, error) {
 
 func ParseCmdline(pid int) *Cmdline {
 	const file = "cmdline"
-	path := fmt.Sprintf("%s/%d/%s", helper.PROC_DIR, pid, file)
+	path := fmt.Sprintf("%s/%d/%s", internal.PROC_DIR, pid, file)
 
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -204,9 +204,9 @@ func ParseCmdline(pid int) *Cmdline {
 
 func ParseStatus(pid int) *Status {
 	const file = "status"
-	path := fmt.Sprintf("%s/%d/%s", helper.PROC_DIR, pid, file)
+	path := fmt.Sprintf("%s/%d/%s", internal.PROC_DIR, pid, file)
 	status := &Status{}
-	helper.OpenWithScanner(path, func(scanner *bufio.Scanner) {
+	internal.OpenWithScanner(path, func(scanner *bufio.Scanner) {
 		for scanner.Scan() {
 			line := scanner.Text()
 			ParseStatusLine(line, status)

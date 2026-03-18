@@ -4,7 +4,7 @@ import (
 	"maps"
 	"testing"
 
-	"github.com/omar0ali/sysmon/sysmon"
+	"github.com/omar0ali/sysmon/pkg"
 )
 
 func TestParseStatLine(t *testing.T) {
@@ -61,8 +61,8 @@ func TestParseStatLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stat := &sysmon.Stat{}
-			sysmon.ParseStatLine(tt.line, stat)
+			stat := &pkg.Stat{}
+			pkg.ParseStatLine(tt.line, stat)
 			if stat.PID != tt.wantPID {
 				t.Errorf("expected PID %d, got %d", tt.wantPID, stat.PID)
 			}
@@ -80,18 +80,18 @@ func TestParseCpuInfoLine(t *testing.T) {
 	tests := []struct {
 		name     string
 		line     string
-		initial  sysmon.CpuInfo
-		expected sysmon.CpuInfo
+		initial  pkg.CpuInfo
+		expected pkg.CpuInfo
 	}{
 		{
 			name: "empty line",
 			line: "",
-			initial: sysmon.CpuInfo{
+			initial: pkg.CpuInfo{
 				LogicalCPUs:   1,
 				ModelName:     "Intel",
 				PhysicalCores: 4,
 			},
-			expected: sysmon.CpuInfo{
+			expected: pkg.CpuInfo{
 				LogicalCPUs:   1,
 				ModelName:     "Intel",
 				PhysicalCores: 4,
@@ -100,58 +100,58 @@ func TestParseCpuInfoLine(t *testing.T) {
 		{
 			name:     "invalid line without colon",
 			line:     "processor 0",
-			initial:  sysmon.CpuInfo{},
-			expected: sysmon.CpuInfo{},
+			initial:  pkg.CpuInfo{},
+			expected: pkg.CpuInfo{},
 		},
 		{
 			name:    "processor increments logical cpu",
 			line:    "processor : 0",
-			initial: sysmon.CpuInfo{},
-			expected: sysmon.CpuInfo{
+			initial: pkg.CpuInfo{},
+			expected: pkg.CpuInfo{
 				LogicalCPUs: 1,
 			},
 		},
 		{
 			name:    "model name set first time",
 			line:    "model name : Intel(R) Core(TM) i7",
-			initial: sysmon.CpuInfo{},
-			expected: sysmon.CpuInfo{
+			initial: pkg.CpuInfo{},
+			expected: pkg.CpuInfo{
 				ModelName: "Intel(R) Core(TM) i7",
 			},
 		},
 		{
 			name: "model name not overwritten",
 			line: "model name : AMD Ryzen",
-			initial: sysmon.CpuInfo{
+			initial: pkg.CpuInfo{
 				ModelName: "Intel",
 			},
-			expected: sysmon.CpuInfo{
+			expected: pkg.CpuInfo{
 				ModelName: "Intel",
 			},
 		},
 		{
 			name:    "cpu cores parsed",
 			line:    "cpu cores : 8",
-			initial: sysmon.CpuInfo{},
-			expected: sysmon.CpuInfo{
+			initial: pkg.CpuInfo{},
+			expected: pkg.CpuInfo{
 				PhysicalCores: 8,
 			},
 		},
 		{
 			name: "cpu cores not overwritten",
 			line: "cpu cores : 16",
-			initial: sysmon.CpuInfo{
+			initial: pkg.CpuInfo{
 				PhysicalCores: 8,
 			},
-			expected: sysmon.CpuInfo{
+			expected: pkg.CpuInfo{
 				PhysicalCores: 8,
 			},
 		},
 		{
 			name:     "cpu cores invalid number",
 			line:     "cpu cores : notanumber",
-			initial:  sysmon.CpuInfo{},
-			expected: sysmon.CpuInfo{},
+			initial:  pkg.CpuInfo{},
+			expected: pkg.CpuInfo{},
 		},
 	}
 
@@ -159,7 +159,7 @@ func TestParseCpuInfoLine(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			cpu := tt.initial
 
-			sysmon.ParseCpuInfoLine(tt.line, &cpu)
+			pkg.ParseCpuInfoLine(tt.line, &cpu)
 
 			if cpu.LogicalCPUs != tt.expected.LogicalCPUs {
 				t.Errorf("LogicalCPUs = %d, want %d", cpu.LogicalCPUs, tt.expected.LogicalCPUs)
@@ -232,7 +232,7 @@ func TestParseMemInfoLine(t *testing.T) {
 			// copy starting map
 			maps.Copy(data, tt.start)
 
-			sysmon.ParseMemInfoLine(tt.line, data)
+			pkg.ParseMemInfoLine(tt.line, data)
 
 			if len(data) != len(tt.want) {
 				t.Fatalf("map length = %d, want %d", len(data), len(tt.want))
@@ -300,9 +300,9 @@ func TestParseCpuStatLine(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stats := make([]*sysmon.CPUStats, tt.startLen)
+			stats := make([]*pkg.CPUStats, tt.startLen)
 
-			ok := sysmon.ParseCpuStatLine(tt.line, &stats)
+			ok := pkg.ParseCpuStatLine(tt.line, &stats)
 
 			if ok != tt.wantValid {
 				t.Errorf("return = %v, want %v", ok, tt.wantValid)

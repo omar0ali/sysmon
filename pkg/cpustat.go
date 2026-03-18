@@ -1,13 +1,13 @@
-package sysmon
+package pkg
 
 import (
 	"bufio"
 	"strings"
 
-	"github.com/omar0ali/sysmon/sysmon/helper"
+	"github.com/omar0ali/sysmon/internal"
 )
 
-const cpustat_path = helper.PROC_DIR + "/stat"
+const cpustat_path = internal.PROC_DIR + "/stat"
 
 type CPUStats struct {
 	User, Nice, System, Idle, Iowait, Irq, SoftIrq uint64
@@ -24,20 +24,20 @@ func ParseCpuStatLine(line string, cpustat *[]*CPUStats) bool {
 	}
 
 	*cpustat = append(*cpustat, &CPUStats{
-		User:    helper.ParseUint(parts[1]),
-		Nice:    helper.ParseUint(parts[2]),
-		System:  helper.ParseUint(parts[3]),
-		Idle:    helper.ParseUint(parts[4]),
-		Iowait:  helper.ParseUint(parts[5]),
-		Irq:     helper.ParseUint(parts[6]),
-		SoftIrq: helper.ParseUint(parts[7]),
+		User:    internal.ParseUint(parts[1]),
+		Nice:    internal.ParseUint(parts[2]),
+		System:  internal.ParseUint(parts[3]),
+		Idle:    internal.ParseUint(parts[4]),
+		Iowait:  internal.ParseUint(parts[5]),
+		Irq:     internal.ParseUint(parts[6]),
+		SoftIrq: internal.ParseUint(parts[7]),
 	})
 	return true
 }
 
 func ReadCpuStat() ([]*CPUStats, error) {
 	var cpustat []*CPUStats
-	err := helper.OpenWithScanner(cpustat_path, func(scanner *bufio.Scanner) {
+	err := internal.OpenWithScanner(cpustat_path, func(scanner *bufio.Scanner) {
 		scanner.Split(bufio.ScanLines)
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())

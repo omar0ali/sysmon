@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/omar0ali/sysmon/sysmon"
+	"github.com/omar0ali/sysmon/pkg"
 )
 
 func main() {
 
 	// MemInfo And CpuInfo
 
-	meminfo, err := sysmon.ReadMemInfo(sysmon.MB)
+	meminfo, err := pkg.ReadMemInfo(pkg.MB)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("MEMINFO: %+v\n", meminfo)
-	cpuinfo, err := sysmon.ReadCpuInfo()
+	cpuinfo, err := pkg.ReadCpuInfo()
 	if err != nil {
 		panic(err)
 	}
@@ -24,7 +24,7 @@ func main() {
 
 	// CpuStat
 
-	prev, err := sysmon.ReadCpuStat()
+	prev, err := pkg.ReadCpuStat()
 	if err != nil {
 		panic(err)
 	}
@@ -34,7 +34,7 @@ func main() {
 	}
 
 	time.Sleep(time.Second)
-	curr, err := sysmon.ReadCpuStat()
+	curr, err := pkg.ReadCpuStat()
 	if err != nil {
 		panic(err)
 	}
@@ -42,7 +42,7 @@ func main() {
 		fmt.Printf("CPUSTATS_CURR %d: %+v\n", i, *stat)
 	}
 
-	delta := sysmon.DeltaCPUStats(prev, curr)
+	delta := pkg.DeltaCPUStats(prev, curr)
 
 	for i, d := range delta {
 		total := d.User + d.Nice + d.System + d.Idle + d.Iowait + d.Irq + d.SoftIrq
@@ -53,16 +53,16 @@ func main() {
 
 	// display processes
 
-	pids, err := sysmon.GetPids()
+	pids, err := pkg.GetPids()
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Pids: %+v\n", pids)
 
-	procs := map[int]*sysmon.Process{}
+	procs := map[int]*pkg.Process{}
 
 	for i := range pids {
-		procs[pids[i]], err = sysmon.NewProcess(pids[i])
+		procs[pids[i]], err = pkg.NewProcess(pids[i])
 		if err != nil {
 			panic(err)
 		}
@@ -74,7 +74,7 @@ func main() {
 
 	// refresh processes to get processes usage
 
-	prevCPU, err := sysmon.ReadCpuStat()
+	prevCPU, err := pkg.ReadCpuStat()
 	if err != nil {
 		panic(err)
 	}
@@ -85,13 +85,13 @@ func main() {
 	}
 
 	time.Sleep(time.Second)
-	sysmon.RefreshProcesses(procs)
+	pkg.RefreshProcesses(procs)
 
-	currCPU, err := sysmon.ReadCpuStat()
+	currCPU, err := pkg.ReadCpuStat()
 	if err != nil {
 		panic(err)
 	}
-	delta = sysmon.DeltaCPUStats(prevCPU, currCPU)
+	delta = pkg.DeltaCPUStats(prevCPU, currCPU)
 
 	totalDelta := uint64(0)
 
