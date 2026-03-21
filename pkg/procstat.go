@@ -3,7 +3,6 @@ package pkg
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -156,7 +155,6 @@ func GetPids() ([]int, error) {
 		if dir[i].IsDir() {
 			v, err := strconv.Atoi(dir[i].Name())
 			if err != nil {
-				log.Printf("Ignore file, is not pid: %s\n", err)
 				continue
 			}
 			pids = append(pids, v)
